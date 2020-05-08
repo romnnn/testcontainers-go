@@ -3,7 +3,7 @@ package testcontainers
 import (
 	"context"
 	"fmt"
-	"github.com/testcontainers/testcontainers-go/wait"
+	"github.com/romnnn/testcontainers-go/wait"
 	"testing"
 	"time"
 )
