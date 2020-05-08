@@ -9,7 +9,7 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
-	"github.com/testcontainers/testcontainers-go/wait"
+	"github.com/romnnn/testcontainers-go/wait"
 )
 
 // DeprecatedContainer shows methods that were supported before, but are now deprecated
@@ -64,6 +64,13 @@ type FromDockerfile struct {
 	Dockerfile     string    // the path from the context to the Dockerfile for the image, defaults to "Dockerfile"
 }
 
+// ContainerResourcers represents the host resources a running container is allowed to consume
+type ContainerResourcers struct {
+	NanoCPUs   int64
+	Memory     int64
+	MemorySwap int64
+}
+
 // ContainerRequest represents the parameters used to get a running container
 type ContainerRequest struct {
 	FromDockerfile
@@ -85,6 +92,7 @@ type ContainerRequest struct {
 	ReaperImage     string              // alternative reaper image
 	AutoRemove      bool                // if set to true, the container will be removed from the host when stopped
 	NetworkMode     container.NetworkMode
+	Resources       *ContainerResourcers
 	AlwaysPullImage bool // Always pull image
 }
 

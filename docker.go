@@ -27,7 +27,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
-	"github.com/testcontainers/testcontainers-go/wait"
+	"github.com/romnnn/testcontainers-go/wait"
 )
 
 // Implement interfaces
@@ -562,6 +562,14 @@ func (p *DockerProvider) CreateContainer(ctx context.Context, req ContainerReque
 		AutoRemove:   req.AutoRemove,
 		Privileged:   req.Privileged,
 		NetworkMode:  req.NetworkMode,
+	}
+
+	if req.Resources != nil {
+		hostConfig.Resources = container.Resources{
+			NanoCPUs:   req.Resources.NanoCPUs,
+			Memory:     req.Resources.Memory,
+			MemorySwap: req.Resources.MemorySwap,
+		}
 	}
 
 	endpointConfigs := map[string]*network.EndpointSettings{}
