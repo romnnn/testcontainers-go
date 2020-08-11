@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "errors.go",
+        "errors_windows.go",
+        "host_port.go",
+        "http.go",
+        "log.go",
+        "multi.go",
+        "sql.go",
+        "wait.go",
+    ],
+    importpath = "github.com/romnnn/testcontainers-go/wait",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_docker_go_connections//nat:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:windows": [
+            "@org_golang_x_sys//windows:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "http_test.go",
+        "log_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//:go_default_library",
+        "@com_github_docker_go_connections//nat:go_default_library",
+    ],
+)
