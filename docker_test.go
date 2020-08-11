@@ -27,7 +27,6 @@ import (
 
 func TestContainerAttachedToNewNetwork(t *testing.T) {
 	networkName := "new-network"
-
 	ctx := context.Background()
 	gcr := GenericContainerRequest{
 		ContainerRequest: ContainerRequest{
@@ -105,6 +104,7 @@ func TestContainerWithHostNetworkOptions(t *testing.T) {
 			ExposedPorts: []string{
 				"80/tcp",
 			},
+			WaitingFor: wait.ForListeningPort("80/tcp"),
 		},
 		Started: true,
 	}
@@ -472,6 +472,7 @@ func TestTwoContainersExposingTheSamePort(t *testing.T) {
 			ExposedPorts: []string{
 				"80/tcp",
 			},
+			WaitingFor: wait.ForListeningPort("80/tcp"),
 		},
 		Started: true,
 	})
@@ -529,6 +530,7 @@ func TestContainerCreation(t *testing.T) {
 			ExposedPorts: []string{
 				nginxPort,
 			},
+			WaitingFor: wait.ForListeningPort("80/tcp"),
 		},
 		Started: true,
 	})
@@ -588,8 +590,9 @@ func TestContainerCreationWithName(t *testing.T) {
 			ExposedPorts: []string{
 				nginxPort,
 			},
-			Name:     creationName,
-			Networks: []string{"bridge"},
+			WaitingFor: wait.ForListeningPort("80/tcp"),
+			Name:       creationName,
+			Networks:   []string{"bridge"},
 		},
 		Started: true,
 	})
@@ -1022,6 +1025,36 @@ func TestCMD(t *testing.T) {
 			wait.ForLog("command override!"),
 		),
 		Cmd: []string{"echo", "command override!"},
+	}
+
+	c, err := GenericContainer(ctx, GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// defer not needed, but keeping it in for consistency
+	defer c.Terminate(ctx)
+}
+
+func TestEntrypoint(t *testing.T) {
+	/*
+		echo a unique statement to ensure that we
+		can pass in an entrypoint to the ContainerRequest
+		and it will be run when we run the container
+	*/
+
+	ctx := context.Background()
+
+	req := ContainerRequest{
+		Image: "alpine",
+		WaitingFor: wait.ForAll(
+			wait.ForLog("entrypoint override!"),
+		),
+		Entrypoint: []string{"echo", "entrypoint override!"},
 	}
 
 	c, err := GenericContainer(ctx, GenericContainerRequest{

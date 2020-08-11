@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -302,4 +303,41 @@ func Test_GetLogsFromFailedContainer(t *testing.T) {
 	if strings.Contains(log, "I was not expecting this") == false {
 		t.Fatalf("could not find expected log in %s", log)
 	}
+}
+
+func TestShouldStartContainersInParallel(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	t.Cleanup(cancel)
+
+	for i := 0; i < 3; i++ {
+		t.Run(fmt.Sprintf("iteration_%d", i), func(t *testing.T) {
+			t.Parallel()
+			createTestContainer(t, ctx)
+		})
+	}
+}
+
+func createTestContainer(t *testing.T, ctx context.Context) int {
+	req := ContainerRequest{
+		Image:        "nginx",
+		ExposedPorts: []string{"80/tcp"},
+		WaitingFor:   wait.ForHTTP("/"),
+	}
+	container, err := GenericContainer(ctx, GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	if err != nil {
+		t.Fatalf("could not start container: %v", err)
+	}
+	port, err := container.MappedPort(ctx, "80")
+	if err != nil {
+		t.Fatalf("could not get mapped port: %v", err)
+	}
+
+	t.Cleanup(func() {
+		container.Terminate(context.Background())
+	})
+
+	return port.Int()
 }
